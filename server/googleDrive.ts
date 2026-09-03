@@ -134,12 +134,34 @@ function escapeForQuery(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
+// Two uploadToDrive() calls in flight at once (e.g. users.enc and
+// records.enc both syncing right after boot) would otherwise each run
+// their own "search, then create if missing" sequence — Drive's API isn't
+// atomic across that, so both can see "not found" and each create their
+// own folder. Sharing one in-flight promise per process makes concurrent
+// callers await the same creation instead of racing.
+let folderCreationInFlight: Promise<string> | null = null;
+
 async function ensureFolder(): Promise<string> {
   if (folderIdCache) return folderIdCache;
+  if (folderCreationInFlight) return folderCreationInFlight;
 
+  folderCreationInFlight = ensureFolderUncached();
+  try {
+    return await folderCreationInFlight;
+  } finally {
+    folderCreationInFlight = null;
+  }
+}
+
+async function ensureFolderUncached(): Promise<string> {
+  // Ordered by creation time so that if a duplicate folder exists (e.g.
+  // from before this race fix), the oldest one — the one most likely to
+  // actually hold the real data — is used consistently rather than an
+  // arbitrary one.
   const q = `name='${escapeForQuery(FOLDER_NAME)}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
   const searchRes = await driveFetch(
-    `${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id,name)&spaces=drive`
+    `${DRIVE_API}/files?q=${encodeURIComponent(q)}&orderBy=createdTime&fields=files(id,name)&spaces=drive`
   );
   if (!searchRes.ok) {
     throw new Error(`Drive folder search failed: ${searchRes.status} ${await searchRes.text()}`);
