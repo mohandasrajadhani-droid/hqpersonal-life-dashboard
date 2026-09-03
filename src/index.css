@@ -1,0 +1,198 @@
+@import "tailwindcss";
+
+@theme {
+  --color-emerald-50: #f1f6f3;
+  --color-emerald-100: #e2ede5;
+  --color-emerald-200: #c6dcce;
+  --color-emerald-300: #a0c4ac;
+  --color-emerald-400: #6ca57d;
+  --color-emerald-500: #4a8a5f;
+  --color-emerald-600: #387652;
+  --color-emerald-700: #2d5f42;
+  --color-emerald-800: #244b34;
+  --color-emerald-900: #1d3d2a;
+  --color-emerald-950: #0e2116;
+
+  --color-rose-50: #faf3f3;
+  --color-rose-100: #f5e4e4;
+  --color-rose-200: #eccdcd;
+  --color-rose-300: #dda8a8;
+  --color-rose-400: #c67171;
+  --color-rose-500: #b44d47;
+  --color-rose-600: #a83832;
+  --color-rose-700: #8c2924;
+  --color-rose-800: #71211d;
+
+  --color-amber-50: #fcf8f1;
+  --color-amber-100: #f8eede;
+  --color-amber-200: #f0dac0;
+  --color-amber-300: #e3bd94;
+  --color-amber-400: #d1975e;
+  --color-amber-500: #c17b35;
+  --color-amber-600: #b8741e;
+  --color-amber-700: #945717;
+
+  --color-blue-50: #f2f6fa;
+  --color-blue-100: #e3ecf5;
+  --color-blue-200: #c8dbe9;
+  --color-blue-300: #9ebfd7;
+  --color-blue-400: #6d9bc0;
+  --color-blue-500: #4d7ea7;
+  --color-blue-600: #4a6fa5;
+  --color-blue-700: #355380;
+
+  --color-teal-50: #f1f7f7;
+  --color-teal-100: #deeeee;
+  --color-teal-200: #c1dede;
+  --color-teal-300: #96c4c5;
+  --color-teal-400: #62a3a5;
+  --color-teal-500: #44898b;
+  --color-teal-600: #3a7d84;
+  --color-teal-700: #2b5e64;
+}
+
+@layer base {
+  body {
+    background-color: #f9faf7;
+    color: #222831;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Base font-size modifiers */
+html.text-compact,
+html[data-font-size="compact"] {
+  font-size: 13.5px;
+}
+
+html.text-normal,
+html[data-font-size="normal"] {
+  font-size: 15px;
+}
+
+html.text-large,
+html[data-font-size="large"] {
+  font-size: 16.5px;
+}
+
+html.text-xlarge,
+html[data-font-size="xlarge"] {
+  font-size: 18.5px;
+}
+
+/* Palette Color Custom Properties — Soft Natural System */
+:root {
+  --color-primary: #387652;
+  --color-primary-hover: #2e6143;
+  --color-primary-light: #edf5f0;
+  --color-primary-ring: rgba(56, 118, 82, 0.25);
+}
+
+html.palette-emerald,
+html[data-palette="emerald"] {
+  --color-primary: #387652;
+  --color-primary-hover: #2e6143;
+  --color-primary-light: #edf5f0;
+  --color-primary-ring: rgba(56, 118, 82, 0.25);
+}
+
+html.palette-blue,
+html[data-palette="blue"] {
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-primary-light: #eff6ff;
+  --color-primary-ring: rgba(59, 130, 246, 0.25);
+}
+
+html.palette-violet,
+html[data-palette="violet"] {
+  --color-primary: #7c6ba6;
+  --color-primary-hover: #675591;
+  --color-primary-light: #f5f3ff;
+  --color-primary-ring: rgba(124, 107, 166, 0.25);
+}
+
+html.palette-amber,
+html[data-palette="amber"] {
+  --color-primary: #c07018;
+  --color-primary-hover: #9f5a0f;
+  --color-primary-light: #fef8ee;
+  --color-primary-ring: rgba(192, 112, 24, 0.25);
+}
+
+html.palette-rose,
+html[data-palette="rose"] {
+  --color-primary: #be3a34;
+  --color-primary-hover: #9c2a25;
+  --color-primary-light: #fef2f2;
+  --color-primary-ring: rgba(190, 58, 52, 0.25);
+}
+
+html.palette-slate,
+html[data-palette="slate"] {
+  --color-primary: #526071;
+  --color-primary-hover: #3f4a58;
+  --color-primary-light: #f1f5f9;
+  --color-primary-ring: rgba(82, 96, 113, 0.25);
+}
+
+/* High Contrast Mode */
+html.theme-high-contrast,
+html[data-theme="high-contrast"] {
+  color-scheme: dark;
+}
+
+html.theme-high-contrast body,
+html[data-theme="high-contrast"] body,
+html.theme-high-contrast #root,
+html[data-theme="high-contrast"] #root {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* High Contrast Cards and Containers */
+html.theme-high-contrast .bg-white,
+html[data-theme="high-contrast"] .bg-white,
+html.theme-high-contrast .dark\:bg-slate-900,
+html[data-theme="high-contrast"] .dark\:bg-slate-900,
+html.theme-high-contrast .dark\:bg-slate-950,
+html[data-theme="high-contrast"] .dark\:bg-slate-950 {
+  background-color: #0c0c0e !important;
+  border-color: #ffffff !important;
+  border-width: 1.5px !important;
+  box-shadow: none !important;
+}
+
+/* High Contrast Inputs and Selects */
+html.theme-high-contrast input,
+html[data-theme="high-contrast"] input,
+html.theme-high-contrast select,
+html[data-theme="high-contrast"] select,
+html.theme-high-contrast textarea,
+html[data-theme="high-contrast"] textarea {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+  border-width: 1.5px !important;
+}
+
+/* High Contrast Text Legibility */
+html.theme-high-contrast .text-slate-500,
+html[data-theme="high-contrast"] .text-slate-500,
+html.theme-high-contrast .text-slate-400,
+html[data-theme="high-contrast"] .text-slate-400,
+html.theme-high-contrast .dark\:text-slate-400,
+html[data-theme="high-contrast"] .dark\:text-slate-400 {
+  color: #e2e8f0 !important;
+}
+
+html.theme-high-contrast .border-slate-100,
+html[data-theme="high-contrast"] .border-slate-100,
+html.theme-high-contrast .border-slate-200,
+html[data-theme="high-contrast"] .border-slate-200,
+html.theme-high-contrast .dark\:border-slate-800,
+html[data-theme="high-contrast"] .dark\:border-slate-800 {
+  border-color: #ffffff !important;
+}

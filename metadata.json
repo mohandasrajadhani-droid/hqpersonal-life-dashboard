@@ -1,0 +1,6 @@
+{
+  "name": "Personal Life Dashboard",
+  "description": "A privacy-first personal life dashboard with authenticated user isolation, AES-256-GCM encryption at rest, secure financial & health management, auto-lock, and zero client storage of sensitive data.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

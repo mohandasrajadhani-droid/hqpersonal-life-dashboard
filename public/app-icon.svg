@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Gradients -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#022c22"/>
+      <stop offset="40%" stop-color="#064e3b"/>
+      <stop offset="75%" stop-color="#047857"/>
+      <stop offset="100%" stop-color="#0d9488"/>
+    </linearGradient>
+
+    <!-- Specular Lighting -->
+    <linearGradient id="sheen" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25"/>
+      <stop offset="35%" stop-color="#ffffff" stop-opacity="0.08"/>
+      <stop offset="60%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Radial Core Glow -->
+    <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#6ee7b7" stop-opacity="0.6"/>
+      <stop offset="50%" stop-color="#10b981" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#064e3b" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Vibrant Orbit Gradient -->
+    <linearGradient id="orbitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6ee7b7"/>
+      <stop offset="50%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+
+    <!-- Golden Sparkle Accent -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+
+    <!-- Leaf Petal Gradient Top (Productivity / Focus) -->
+    <linearGradient id="petalTop" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#a7f3d0"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+
+    <!-- Leaf Petal Gradient Right (Finance / Wealth) -->
+    <linearGradient id="petalRight" x1="100%" y1="50%" x2="0%" y2="50%">
+      <stop offset="0%" stop-color="#67e8f9"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+
+    <!-- Leaf Petal Gradient Bottom (Health / Balance) -->
+    <linearGradient id="petalBottom" x1="50%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+
+    <!-- Leaf Petal Gradient Left (Time / Calendar) -->
+    <linearGradient id="petalLeft" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#5eead4"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+
+    <!-- Drop Shadow Filter for Floating Geometry -->
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="125%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#022c22" flood-opacity="0.45"/>
+    </filter>
+
+    <filter id="symbolShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#011f18" flood-opacity="0.4"/>
+    </filter>
+
+    <filter id="goldGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Base Squircle Container (App Icon Tile) -->
+  <rect x="24" y="24" width="464" height="464" rx="108" ry="108" fill="url(#bgGrad)" filter="url(#cardShadow)" />
+
+  <!-- Outer Border Accent -->
+  <rect x="24" y="24" width="464" height="464" rx="108" ry="108" fill="none" stroke="#34d399" stroke-width="3" stroke-opacity="0.3" />
+
+  <!-- Ambient Light Reflection Sheen -->
+  <rect x="24" y="24" width="464" height="464" rx="108" ry="108" fill="url(#sheen)" />
+
+  <!-- Central Radial Glow -->
+  <circle cx="256" cy="256" r="180" fill="url(#coreGlow)" />
+
+  <!-- Dynamic Orbital Balance Ring (Tilted Oval) -->
+  <g filter="url(#symbolShadow)">
+    <ellipse cx="256" cy="256" rx="160" ry="85" transform="rotate(-30 256 256)" fill="none" stroke="url(#orbitGrad)" stroke-width="9" stroke-dasharray="12 8" stroke-linecap="round" opacity="0.85"/>
+    
+    <!-- Small Orbiting Pearl/Satellite (Task Completion Node) -->
+    <circle cx="120" cy="180" r="10" fill="#a7f3d0" filter="url(#goldGlow)"/>
+    <circle cx="392" cy="332" r="7" fill="#67e8f9" opacity="0.9"/>
+  </g>
+
+  <!-- Central Four-Pillar Life Compass Geometry (Vitality / Finance / Time / Focus) -->
+  <g filter="url(#symbolShadow)" transform="translate(256, 256)">
+    
+    <!-- Outer Connecting Ring Structure -->
+    <circle cx="0" cy="0" r="105" fill="none" stroke="#10b981" stroke-width="3.5" stroke-opacity="0.4" stroke-dasharray="6 6"/>
+
+    <!-- North Petal / Compass Blade (Focus & Productivity) -->
+    <path d="M 0 -18 C -14 -48 -24 -96 0 -138 C 24 -96 14 -48 0 -18 Z" fill="url(#petalTop)" />
+
+    <!-- East Petal (Finance & Abundance) -->
+    <path d="M 18 0 C 48 -14 96 -24 138 0 C 96 24 48 14 18 0 Z" fill="url(#petalRight)" />
+
+    <!-- South Petal (Health & Vitality) -->
+    <path d="M 0 18 C -14 48 -24 96 0 138 C 24 96 14 48 0 18 Z" fill="url(#petalBottom)" />
+
+    <!-- West Petal (Time, Habits & Balance) -->
+    <path d="M -18 0 C -48 -14 -96 -24 -138 0 C -96 24 -48 14 -18 0 Z" fill="url(#petalLeft)" />
+
+    <!-- Secondary Diagonal Micro-Blades (Precision Geometry) -->
+    <g opacity="0.75">
+      <path d="M 0 -12 C -6 -30 -12 -58 0 -78 C 12 -58 6 -30 0 -12 Z" transform="rotate(45)" fill="#6ee7b7" />
+      <path d="M 0 -12 C -6 -30 -12 -58 0 -78 C 12 -58 6 -30 0 -12 Z" transform="rotate(135)" fill="#5eead4" />
+      <path d="M 0 -12 C -6 -30 -12 -58 0 -78 C 12 -58 6 -30 0 -12 Z" transform="rotate(225)" fill="#34d399" />
+      <path d="M 0 -12 C -6 -30 -12 -58 0 -78 C 12 -58 6 -30 0 -12 Z" transform="rotate(315)" fill="#2dd4bf" />
+    </g>
+
+    <!-- Central Radiant Core Star (The User / Life Engine) -->
+    <circle cx="0" cy="0" r="32" fill="#022c22" stroke="#34d399" stroke-width="3" />
+    <circle cx="0" cy="0" r="22" fill="url(#goldGrad)" filter="url(#goldGlow)" />
+    
+    <!-- 4-Point Sparkle Center -->
+    <path d="M 0 -14 L 3 -3 L 14 0 L 3 3 L 0 14 L -3 3 L -14 0 L -3 -3 Z" fill="#ffffff" />
+    <circle cx="0" cy="0" r="3" fill="#ffffff" />
+  </g>
+</svg>

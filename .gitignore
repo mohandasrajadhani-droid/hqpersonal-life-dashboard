@@ -1,0 +1,13 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Server-side encrypted database: master key + at-rest encrypted user/records
+# files. Must never be committed — .encryption_key is raw key material, and
+# losing/rotating it silently orphans everything in users.enc/records.enc.
+data/
