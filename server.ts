@@ -12,6 +12,11 @@ import {
   VALID_ENTITY_TYPES,
   EntityType,
 } from './server/storage';
+import {
+  isDriveConfigured,
+  buildAuthUrl,
+  exchangeCodeForTokens,
+} from './server/googleDrive';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -683,9 +688,103 @@ app.post('/api/backup/purge-all', authenticateToken, (req: AuthenticatedRequest,
   }
 });
 
+// --- GOOGLE DRIVE BACKEND: ONE-TIME SETUP ENDPOINTS ---
+//
+// These are not part of the regular user-facing API and are not reachable
+// by an ordinary registered user. They exist so whoever deploys this server
+// can connect it to their own Google Drive without hand-crafting an OAuth
+// exchange. Full walkthrough: GOOGLE_DRIVE_SETUP.md.
+//
+// Gated by DRIVE_SETUP_TOKEN — a random secret only the deployer knows,
+// generated once and set as an environment variable alongside the Google
+// OAuth client credentials.
+
+const DRIVE_CALLBACK_PATH = '/api/admin/drive/callback';
+
+function getDriveRedirectUri(req: Request): string {
+  // An explicit override is useful if the platform's forwarded-host headers
+  // are unreliable; otherwise it's derived from the incoming request so
+  // this works out of the box on Render, Railway, Fly, etc.
+  if (process.env.GOOGLE_OAUTH_REDIRECT_URI) return process.env.GOOGLE_OAUTH_REDIRECT_URI;
+  const forwardedProto = req.headers['x-forwarded-proto'];
+  const proto = (Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto) || req.protocol;
+  return `${proto}://${req.get('host')}${DRIVE_CALLBACK_PATH}`;
+}
+
+app.get('/api/admin/drive/connect', (req: Request, res: Response) => {
+  const setupToken = process.env.DRIVE_SETUP_TOKEN;
+  if (!setupToken) {
+    return res
+      .status(503)
+      .send('DRIVE_SETUP_TOKEN is not configured on this server. See GOOGLE_DRIVE_SETUP.md.');
+  }
+  if (req.query.key !== setupToken) {
+    return res.status(403).send('Invalid or missing setup key.');
+  }
+  if (!process.env.GOOGLE_OAUTH_CLIENT_ID || !process.env.GOOGLE_OAUTH_CLIENT_SECRET) {
+    return res
+      .status(503)
+      .send('GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET are not configured. See GOOGLE_DRIVE_SETUP.md.');
+  }
+
+  try {
+    const redirectUri = getDriveRedirectUri(req);
+    res.redirect(buildAuthUrl(redirectUri));
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to start Google Drive connection';
+    res.status(500).send(message);
+  }
+});
+
+app.get(DRIVE_CALLBACK_PATH, async (req: Request, res: Response) => {
+  const { code, error } = req.query;
+
+  if (error) {
+    return res.status(400).send(`Google Drive connection was not completed: ${error}`);
+  }
+  if (!code || typeof code !== 'string') {
+    return res.status(400).send('Missing authorization code from Google.');
+  }
+
+  try {
+    const redirectUri = getDriveRedirectUri(req);
+    const tokens = await exchangeCodeForTokens(code, redirectUri);
+
+    if (!tokens.refresh_token) {
+      return res.status(200).send(
+        '<h2>No refresh token returned</h2>' +
+        '<p>Google only issues a refresh token the first time an account grants consent. ' +
+        'Revoke this app\'s access at ' +
+        '<a href="https://myaccount.google.com/permissions" target="_blank">myaccount.google.com/permissions</a> ' +
+        'and try connecting again.</p>'
+      );
+    }
+
+    res.status(200).send(
+      '<!doctype html><html><head><meta charset="utf-8"><title>Google Drive Connected</title></head>' +
+      '<body style="font-family: system-ui, sans-serif; max-width: 640px; margin: 40px auto; line-height: 1.5;">' +
+      '<h2>Google Drive connected</h2>' +
+      '<p>Copy the value below into this server\'s <code>GOOGLE_DRIVE_REFRESH_TOKEN</code> environment ' +
+      'variable, then redeploy/restart. Google will not show this value again.</p>' +
+      `<pre id="refresh-token" style="background:#f4f4f4;border:1px solid #ccc;padding:12px;border-radius:8px;white-space:pre-wrap;word-break:break-all;">${tokens.refresh_token}</pre>` +
+      '<p>Once <code>GOOGLE_DRIVE_REFRESH_TOKEN</code> is set, you can remove <code>DRIVE_SETUP_TOKEN</code> ' +
+      'to close off this setup endpoint.</p>' +
+      '</body></html>'
+    );
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to complete Google Drive connection';
+    res.status(500).send(message);
+  }
+});
+
 // --- VITE MIDDLEWARE & STATIC SERVING ---
 
 async function startServer() {
+  // Hosts without a persistent disk (e.g. a free-tier web service) start
+  // every instance with an empty data/ directory, so any Drive-backed data
+  // must be pulled down before the app starts accepting requests.
+  await secureStorage.init();
+
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -704,6 +803,11 @@ async function startServer() {
     console.log(`[Security Architecture] Server running on http://0.0.0.0:${PORT}`);
     console.log(`[Security Architecture] AES-256-GCM encryption active at rest`);
     console.log(`[Security Architecture] Security headers & rate limiting enforced`);
+    console.log(
+      isDriveConfigured()
+        ? '[Google Drive] Backend sync active — encrypted data is backed up to Google Drive.'
+        : '[Google Drive] Not configured — using local disk only. See GOOGLE_DRIVE_SETUP.md to enable it.'
+    );
   });
 }
 

@@ -7,6 +7,7 @@ import {
   validateNoProhibitedFields,
   generateToken,
 } from './crypto';
+import { isDriveConfigured, downloadFromDriveWithRetry, uploadToDrive } from './googleDrive';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const USERS_FILE = path.join(DATA_DIR, 'users.enc');
@@ -110,15 +111,33 @@ class SecureStorageManager {
   private sessions: Map<string, Session> = new Map(); // key: token
   private initialized = false;
 
+  // Debounce timers for the (optional) Google Drive backup layer, keyed by
+  // which local file changed. Local disk is always written synchronously
+  // first (see saveUsersToDisk/saveRecordsToDisk) so a request never waits
+  // on a network round-trip; Drive is a best-effort durable copy that
+  // survives instance restarts and redeploys on hosts with no persistent
+  // disk (see server/googleDrive.ts).
+  private driveSyncTimers: Partial<Record<'users' | 'records', ReturnType<typeof setTimeout>>> = {};
+  private static readonly DRIVE_SYNC_DEBOUNCE_MS = 2500;
+
   private ensureDir() {
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true, mode: 0o700 });
     }
   }
 
-  public init() {
+  public async init(): Promise<void> {
     if (this.initialized) return;
     this.ensureDir();
+
+    if (isDriveConfigured()) {
+      // Hosts without a persistent disk (e.g. Render's Free plan) start every
+      // instance with an empty data/ directory, so the durable copy in Drive
+      // has to be pulled down and written locally *before* anything reads
+      // from disk below — otherwise every restart would look like data loss.
+      await this.hydrateFromDrive();
+    }
+
     this.loadUsersFromDisk();
     this.loadRecordsFromDisk();
     this.initialized = true;
@@ -127,6 +146,62 @@ class SecureStorageManager {
     setInterval(() => {
       this.cleanupExpiredSessions();
     }, 5 * 60 * 1000).unref();
+  }
+
+  private async hydrateFromDrive(): Promise<void> {
+    try {
+      const [usersContent, recordsContent] = await Promise.all([
+        downloadFromDriveWithRetry('users.enc'),
+        downloadFromDriveWithRetry('records.enc'),
+      ]);
+
+      if (usersContent !== null) {
+        fs.writeFileSync(USERS_FILE, usersContent, { mode: 0o600 });
+      }
+      if (recordsContent !== null) {
+        fs.writeFileSync(RECORDS_FILE, recordsContent, { mode: 0o600 });
+      }
+      console.log('[Google Drive] Restored encrypted data from Drive backend.');
+    } catch (err) {
+      // Deliberately non-fatal: fall back to whatever (if anything) is on
+      // local disk rather than crash the whole server over a transient
+      // network/API error. This is logged loudly because silently serving
+      // stale/empty data for real personal & financial records is exactly
+      // the failure mode this needs to avoid hiding.
+      console.error(
+        '[Google Drive] Failed to restore encrypted data from Drive after retries. ' +
+        'Continuing with local disk only — recent changes made from another instance may be missing:',
+        err
+      );
+    }
+  }
+
+  private scheduleDriveSync(kind: 'users' | 'records') {
+    if (!isDriveConfigured()) return;
+
+    const existing = this.driveSyncTimers[kind];
+    if (existing) clearTimeout(existing);
+
+    this.driveSyncTimers[kind] = setTimeout(() => {
+      delete this.driveSyncTimers[kind];
+      const file = kind === 'users' ? USERS_FILE : RECORDS_FILE;
+      const driveName = kind === 'users' ? 'users.enc' : 'records.enc';
+
+      let content: string;
+      try {
+        content = fs.readFileSync(file, 'utf8');
+      } catch (err) {
+        console.error(`[Google Drive] Could not read local ${driveName} to sync:`, err);
+        return;
+      }
+
+      uploadToDrive(driveName, content).catch((err) => {
+        console.error(`[Google Drive] Failed to sync ${driveName} to Drive (will retry on next change):`, err);
+      });
+    }, SecureStorageManager.DRIVE_SYNC_DEBOUNCE_MS);
+
+    // Don't let a pending Drive sync keep the process alive on its own.
+    this.driveSyncTimers[kind]?.unref?.();
   }
 
   private loadUsersFromDisk() {
@@ -157,6 +232,7 @@ class SecureStorageManager {
     const tmpFile = `${USERS_FILE}.tmp`;
     fs.writeFileSync(tmpFile, JSON.stringify(encrypted), { mode: 0o600 });
     fs.renameSync(tmpFile, USERS_FILE);
+    this.scheduleDriveSync('users');
   }
 
   private loadRecordsFromDisk() {
@@ -185,6 +261,7 @@ class SecureStorageManager {
     const tmpFile = `${RECORDS_FILE}.tmp`;
     fs.writeFileSync(tmpFile, JSON.stringify(encrypted), { mode: 0o600 });
     fs.renameSync(tmpFile, RECORDS_FILE);
+    this.scheduleDriveSync('records');
   }
 
   // Session Methods
@@ -426,5 +503,7 @@ class SecureStorageManager {
   }
 }
 
+// Note: init() is async (it may need to hydrate from Google Drive before
+// anything reads local disk) and is awaited explicitly by server.ts's
+// startup sequence, rather than being fired-and-forgotten here.
 export const secureStorage = new SecureStorageManager();
-secureStorage.init();
