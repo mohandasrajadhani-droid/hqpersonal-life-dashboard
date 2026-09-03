@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Privacy Policy — Personal Life Dashboard</title>
+<style>
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; max-width: 720px; margin: 48px auto; padding: 0 20px; line-height: 1.6; color: #1f2937; }
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.1rem; margin-top: 2rem; }
+  code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<h1>Privacy Policy — Personal Life Dashboard</h1>
+<p>This is a self-hosted, personal-use application. This instance is operated by its deployer for their own use (and anyone they've invited to register an account here) — not a commercial or public service.</p>
+
+<h2>What data is collected</h2>
+<p>Only what you enter directly into the app: tasks, reminders, bills, expenses, income, medicines, appointments, medical records, blood pressure readings, renewals, calendar events, trips, habits, credit card metadata (never full card numbers, CVV, or PINs — the app actively rejects those), bank account metadata, and your account email/name/password.</p>
+
+<h2>How it's stored</h2>
+<p>All personal, financial, and health records are encrypted at rest with AES-256-GCM before being written to disk. Passwords are hashed with scrypt and never stored in plain text. If this instance is connected to a Google Drive backend, the same encrypted files (not the underlying plaintext) are also backed up to a Google Drive folder — see this project's <code>GOOGLE_DRIVE_SETUP.md</code> for exactly what that involves.</p>
+
+<h2>What it's used for</h2>
+<p>Solely to run the dashboard for the account that entered it. Nothing is sold, shared with advertisers, or used to train any model.</p>
+
+<h2>Third parties</h2>
+<p>No data is sent to third parties, with the narrow exception of the optional Google Drive backend described above (which only this app's own encrypted backup files pass through, using the <code>drive.file</code> scope — meaning it can only see files it created itself, never anything else in that Drive account).</p>
+
+<h2>Your data, your control</h2>
+<p>The app includes an in-app account deletion feature that permanently purges all of your records. Because this is self-hosted software, the person operating this specific instance is its data controller — contact them directly (see the app's sign-in screen or repository) with any questions or requests.</p>
+</body>
+</html>
